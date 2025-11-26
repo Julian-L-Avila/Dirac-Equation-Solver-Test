@@ -1,100 +1,121 @@
-# User Manual
+# Manual de Usuario
 
-## 1. Licensing and Citation
+## 1. Licencia y Citación
 
-### Licensing
+### Licencia
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Este proyecto está licenciado bajo la Licencia MIT. Consulte el archivo [LICENSE](LICENSE) para más detalles.
 
-### Citation
+### Citación
 
-If you use this software in your research, please cite it as follows:
+Si utiliza este software en su investigación, por favor cítelo de la siguiente manera:
 
 ```
-[Placeholder for academic citation]
+[Espacio reservado para la citación académica]
 ```
 
-## 2. Theoretical Formulation
+## 2. Formulación Teórica
 
-The dynamics of the spinor field ψ(x) are governed by the Dirac equation:
+La dinámica del campo espinorial ψ(x) se rige por la ecuación de Dirac:
 
 (iγ^μ ∂_μ - m)ψ(x) = 0
 
-where:
-- γ^μ are the gamma matrices, which satisfy the Clifford algebra {γ^μ, γ^ν} = 2g^μν I.
-- g^μν is the metric tensor with signature (+, -, -, -).
-- m is the mass of the particle.
-- The spinor field ψ(x) is a four-component complex vector.
+donde:
+- γ^μ son las matrices gamma, que satisfacen el álgebra de Clifford {γ^μ, γ^ν} = 2g^μν I.
+- g^μν es el tensor métrico con signatura (+, -, -, -).
+- m es la masa de la partícula.
+- El campo espinorial ψ(x) es un vector complejo de cuatro componentes.
 
-## 3. The Discretization Scheme
+Un estado de partícula libre con momento `p` y espín `s` se describe mediante un espinor de Dirac `u(p, s)`, que se construye a partir de un espinor de Pauli de dos componentes χ_s. El espinor de Dirac tiene la forma:
 
-The Dirac equation is discretized on a space-time lattice using the staggered grid formulation. This approach ensures numerical stability and avoids the fermion doubling problem.
+u(p, s) = (sqrt(E + m) * χ_s)
+          (sqrt(E - m) * (p·σ / |p|) * χ_s)
 
-### Space-Time Lattice
+donde `E` es la energía relativista y `σ` son las matrices de Pauli.
 
-The space-time continuum is replaced by a discrete lattice with spacing `Δx` in the spatial dimensions and `Δt` in the time dimension.
+## 3. Esquema de Discretización
 
-### Staggered Grid Formulation
+La ecuación de Dirac se discretiza en una red espacio-temporal utilizando la formulación de rejilla escalonada (staggered grid). Este enfoque garantiza la estabilidad numérica y evita el problema del doblado de fermiones.
 
-The components of the spinor field are placed at different points on the lattice, which allows for a more accurate representation of the derivatives in the Dirac equation.
+### Red Espacio-Temporal
 
-### Stability Criteria
+El continuo espacio-temporal se reemplaza por una red discreta con un espaciado `Δx` en las dimensiones espaciales y `Δt` en la dimensión temporal.
 
-For the time-evolution operator to be stable, the time step `Δt` must satisfy the following condition:
+### Formulación de Rejilla Escalonada
+
+Las componentes del campo espinorial se sitúan en diferentes puntos de la red, lo que permite una representación más precisa de las derivadas en la ecuación de Dirac.
+
+### Criterio de Estabilidad
+
+Para que el operador de evolución temporal sea estable, el paso de tiempo `Δt` debe satisfacer la siguiente condición:
 
 Δt <= Δx / c
 
-where `c` is the speed of light. In this simulation, we use natural units where `c = 1`.
+donde `c` es la velocidad de la luz. En esta simulación, utilizamos unidades naturales donde `c = 1`.
 
-## 4. API Reference
+## 4. Referencia de la API
 
-The `dirac_solver` library is designed with a modular architecture that separates grid initialization, spinor state preparation, external potential coupling, and boundary condition management.
+La biblioteca `dirac_solver` está diseñada con una arquitectura modular que separa la inicialización de la rejilla, la preparación del estado del espinor, el acoplamiento de potenciales externos y la gestión de las condiciones de contorno.
 
-### Grid Initialization (`geometry.py`)
+### Arquitectura del Solucionador
 
-The `Grid` class in `dirac_solver.geometry` is used to define the spatial grid for the simulation.
+Para configurar y ejecutar una simulación, se utiliza el patrón `Builder`.
 
-- `Grid(extents, num_points)`: Creates a grid with the specified extents and number of points in each dimension.
+1.  **`DiracProblemBuilder`**: Una clase que guía la construcción de un problema de simulación paso a paso.
+2.  **`SimulationProblem`**: Un objeto que contiene todos los parámetros de la simulación (rejilla, estado inicial, potencial, etc.).
+3.  **`DiracSolver`**: La clase principal que toma un `SimulationProblem` y ejecuta la simulación.
 
-### Spinor State Preparation (`initial_state.py`)
+### Inicialización de la Rejilla (`geometry.py`)
 
-The `InitialState` class in `dirac_solver.initial_state` is used to define the initial state of the spinor field.
+La clase `Grid` se utiliza para definir la rejilla espacial para la simulación.
 
-- `InitialState(grid, mass)`: Creates an initial state on the given grid with the specified mass.
+- `Grid(shape, spacing, origin=None)`: Crea una rejilla.
+  - `shape`: Una tupla que especifica el número de puntos en cada dimensión (p. ej., `(100,)` para 1D, `(100, 100)` para 2D).
+  - `spacing`: Una tupla que especifica el espaciado entre puntos en cada dimensión (p. ej., `(0.1,)`).
+  - `origin`: El punto de inicio de la rejilla (por defecto, centrada en 0).
 
-### External Potential Coupling (`potentials.py`)
+### Preparación del Estado del Espinor (`initial_state.py`)
 
-The `dirac_solver.potentials` module provides a variety of potentials that can be coupled to the Dirac equation.
+Estas clases se utilizan para definir el estado inicial del campo espinorial. `InitialState` es una clase base abstracta.
 
-- `ScalarPotential(grid, potential_function)`: Creates a scalar potential from a given function.
-- `CoulombPotential(grid, charge_center, strength)`: Creates a Coulomb potential.
-- `YukawaPotential(grid, charge_center, strength, range)`: Creates a Yukawa potential.
-- `InfiniteWellPotential(grid, well_region)`: Creates an infinite well potential.
+- `GaussianPacket(constant_spinor, center, spatial_width)`: Crea un paquete de ondas gaussiano.
+- `PlaneWave(constant_spinor)`: Crea una onda plana.
 
-### Boundary Condition Management
+### Acoplamiento de Potenciales Externos (`potentials.py`)
 
-Boundary conditions are managed by the `DiracSolver` class in `dirac_solver.core`.
+El módulo `dirac_solver.potentials` proporciona varios potenciales.
 
-- `DiracSolver(grid, initial_state, potential, boundary_conditions)`: Creates a solver with the specified grid, initial state, potential, and boundary conditions.
+- `FreeParticle()`: Potencial cero para una partícula libre.
+- `ScalarPotential(func)`: Crea un potencial escalar a partir de una función `func` que toma una posición y devuelve un escalar.
+- `CoulombPotential(Z, epsilon=1e-6)`: Potencial de Coulomb regularizado.
+- `YukawaPotential(strength, range)`: Potencial de Yukawa para interacciones de corto alcance.
+- `InfiniteWellPotential(widths)`: Potencial de pozo infinito.
 
-## 5. Validation and Physical Benchmarks
+### Gestión de Condiciones de Contorno (`boundaries.py`)
 
-The numerical fidelity of the `dirac_solver` is verified through a series of canonical tests.
+Las condiciones de contorno se especifican al construir el problema.
 
-### Dispersion Relations
+- `PeriodicBoundary()`: Condiciones de contorno periódicas.
+- `AbsorbingBoundary(strength, width=20)`: Una capa absorbente en los bordes de la rejilla.
 
-The simulation correctly reproduces the dispersion relation for a free particle, `E^2 = p^2 + m^2`.
+## 5. Validación y Puntos de Referencia Físicos
 
-### Klein Tunneling
+La fidelidad numérica de `dirac_solver` se verifica a través de una serie de pruebas canónicas.
 
-The simulation demonstrates the phenomenon of Klein tunneling, where a relativistic particle can penetrate a potential barrier of arbitrary height.
+### Relaciones de Dispersión
+
+La simulación reproduce correctamente la relación de dispersión para una partícula libre, `E^2 = p^2 + m^2`.
+
+### Túnel de Klein
+
+La simulación demuestra el fenómeno del túnel de Klein, donde una partícula relativista puede penetrar una barrera de potencial de altura arbitraria.
 
 ### Zitterbewegung
 
-The simulation reproduces the rapid oscillatory motion of a free relativistic particle, known as Zitterbewegung.
+La simulación reproduce el rápido movimiento oscilatorio de una partícula relativista libre, conocido como Zitterbewegung.
 
-## 6. Authors and About Us
+## 6. Autores y Sobre Nosotros
 
-This project was created by [Author Name].
+Este proyecto fue creado por [Nombre del Autor].
 
-For questions, feedback, or support, please open an issue on the GitHub repository.
+Para preguntas, comentarios o soporte, por favor abra un *issue* en el repositorio de GitHub.
